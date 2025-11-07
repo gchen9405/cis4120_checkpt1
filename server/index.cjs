@@ -12,17 +12,6 @@ if (!GEMINI_KEY) {
     console.warn("⚠️  Missing GEMINI_API_KEY in .env");
 }
 
-const MODEL = "gemini-2.5-flash-lite";
-const url = `https://generativelanguage.googleapis.com/v1/models/${MODEL}:generateContent?key=${GEMINI_KEY}`;
-
-const SYSTEM_RULES = `
-You are Lifeline's on-device health schedule assistant.
-Answer ONLY using the supplied JSON "entries". If the information isn't in entries, say:
-"I don’t have that yet."
-Be concise, and include concrete dates/times from the entries when relevant.
-If user asks broadly ("what's coming up?"), summarize the next 5 upcoming items.
-`.trim();
-
 // Normalize an ISO datetime from separate date/time strings if needed
 function toISOMaybe(e) {
     // If caller already sent ISO in e.start, just use it
@@ -41,31 +30,37 @@ function toISOMaybe(e) {
     return undefined;
 }
 
+// Stricter greeting detection for "hi", "hello", "hey" with optional punctuation.
+function isPureGreeting(s = "") {
+    const trimmed = s.trim().toLowerCase();
+    // "hi", "hello", "hey" with optional punctuation only
+    return /^(hi|hello|hey)[!\.,\s]*$/.test(trimmed);
+}
+
 app.post("/api/chat", async (req, res) => {
     try {
         // Accept BOTH shapes:
         const body = req.body || {};
-        const question = body.question ?? body.message ?? "";
-        const entriesIn = body.entries ?? body.context ?? [];
+        const question = body.message ?? ""; // Frontend sends `message`
+        const entriesIn = body.context ?? []; // Frontend sends `context`
 
         // 🔎 Debug: what did we receive?
         console.log("POST /api/chat ► received", {
-            questionLen: question.length,
+            question: question,
             entriesInCount: Array.isArray(entriesIn) ? entriesIn.length : 0,
             firstEntry: Array.isArray(entriesIn) ? entriesIn[0] : null,
         });
 
         // map into compact shape, preserve raw date/time too
         const compact = (Array.isArray(entriesIn) ? entriesIn : []).map((e) => {
-            // try to produce ISO start, but also keep raw fields
-            const startISO = toISOMaybe(e);
+            const startISO = toISOMaybe(e); // your normalizer
             return {
                 id: e.id,
-                type: e.type,                 // "medication" | "lab" | "appointment"
+                type: e.type,
                 title: e.title,
                 details: e.description,
-                start: startISO,              // preferred normalized time
-                rawDate: e.date ?? null,      // keep raw fields so model can use them if start missing
+                start: startISO,
+                rawDate: e.date ?? null,
                 rawTime: e.time ?? null,
                 status: e.status,
                 provider: e.provider ?? undefined,
@@ -74,42 +69,29 @@ app.post("/api/chat", async (req, res) => {
             };
         });
 
-        // widen bounds: past 365 days, next 365 days
-        const now = Date.now();
-        const past365 = now - 365 * 24 * 60 * 60 * 1000;
-        const next365 = now + 365 * 24 * 60 * 60 * 1000;
-
-        // Keep entries with a valid start inside range; also KEEP entries with no start (let model use rawDate/rawTime)
-        const safe = compact
-            .filter((e) => {
-                if (!e.start) return true; // keep it, model can still use rawDate/rawTime text
-                const t = new Date(e.start).getTime();
-                return !Number.isNaN(t) && t >= past365 && t <= next365;
-            })
-            .slice(0, 500);
+        // Keep all entries for the model to decide, as it can use raw fields.
+        const safe = compact.slice(0, 500);
 
         console.log("POST /api/chat ► after parse", {
             compactCount: compact.length,
             safeCount: safe.length,
-            firstSafe: safe[0],
+            firstSafe: safe[0] ?? null,
         });
 
-        // If truly nothing useful, short friendly response (prevents endless fallback)
-        if (safe.length === 0 && !question.match(/hi|hello|hey/i)) {
-            return res.json({
-                reply:
-                    "I don’t see any entries I can use yet. Try adding an appointment or medication first.",
-            });
+        if (isPureGreeting(question)) {
+            return res.json({ reply: "Hi there! How can I help you with your health schedule today?" });
+        }
+        if (safe.length === 0) {
+            return res.json({ reply: "I don’t see any entries I can use yet. Try adding an appointment or medication first." });
         }
 
         const SYSTEM_RULES = `
 You are Lifeline's on-device health schedule assistant.
-- If the user greets you (e.g., "hi", "hello"), reply briefly and offer help.
-- Otherwise, answer ONLY using the supplied JSON "entries".
-- If a record has no "start" ISO time, use its "rawDate" and "rawTime" fields to infer the scheduling info.
-- If the answer isn't present, say: "I don’t have that yet."
-- Be concise and include concrete dates/times from the entries when relevant.
-- If the user asks broadly ("what's coming up?"), summarize the next 5 upcoming items.
+- Answer ONLY using the supplied JSON "entries".
+- If an entry has no "start" ISO time, you MUST use its "rawDate" and "rawTime" fields as the source of truth.
+- If the information isn't in the entries, say: "I don’t have that yet."
+- Be concise. When giving times, use the format from "rawTime" (e.g., "08:00 AM").
+- If the user asks a broad question like "what's up?" or "what's next?", summarize the next 5 upcoming items based on the current time.
 `.trim();
 
         const grounding = JSON.stringify(safe, null, 2);
@@ -120,9 +102,9 @@ You are Lifeline's on-device health schedule assistant.
             `QUESTION: ${question}`,
         ].join("\n\n");
 
-        const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
-        const API_VERSION = process.env.GEMINI_API_VERSION || "v1";
-        const url = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${MODEL}:generateContent?key=${GEMINI_KEY}`;
+        // Use v1beta for gemini-1.5-flash and newer models
+        const MODEL = "gemini-2.5-flash-lite";
+        const url = `https://generativelanguage.googleapis.com/v1/models/${MODEL}:generateContent?key=${GEMINI_KEY}`;
 
         const resp = await fetch(url, {
             method: "POST",

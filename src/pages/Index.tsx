@@ -1,77 +1,82 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TimelineEntry, TimelineEntryData, EntryStatus } from "@/components/TimelineEntry";
 import { AddEntryDialog } from "@/components/AddEntryDialog";
 import { SummaryCard } from "@/components/SummaryCard";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar as CalendarIcon, TrendingUp, CalendarDays } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { ChatbotWidget } from "@/components/ChatbotWidget";
+import { useEntriesStore } from "@/store/entries";
 
 const Index = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [entries, setEntries] = useState<TimelineEntryData[]>([
-    {
-      id: "1",
-      type: "medication",
-      title: "Morning Medication - Lisinopril 10mg",
-      description: "Blood pressure medication prescribed by Dr. Johnson",
-      time: "08:00 AM",
-      status: "completed",
-      provider: "Dr. Johnson (Primary Care)",
-      date: format(new Date(), "yyyy-MM-dd"),
-    },
-    {
-      id: "2",
-      type: "medication",
-      title: "Evening Medication - Metformin 500mg",
-      description: "Diabetes medication prescribed by Dr. Smith",
-      time: "06:00 PM",
-      status: "missed",
-      provider: "Dr. Smith (Endocrinologist)",
-      date: format(new Date(), "yyyy-MM-dd"),
-    },
-    {
-      id: "3",
-      type: "lab",
-      title: "Returned Lab Result",
-      description: "Fasting glucose: 105 mg/dL (normal range)",
-      time: "07:30 AM",
-      status: "completed",
-      provider: "City Hospital Lab",
-      date: format(new Date(), "yyyy-MM-dd"),
-    },
-    {
-      id: "4",
-      type: "appointment",
-      title: "Cardiology Follow-up",
-      description: "Quarterly check-up with cardiologist",
-      time: "10:00 AM",
-      status: "upcoming",
-      provider: "Dr. Williams (Cardiology)",
-      date: format(new Date(), "yyyy-MM-dd"),
-    },
-  ]);
+
+  // 🔗 read/write global store
+  const entries = useEntriesStore((s) => s.entries);
+  const addEntry = useEntriesStore((s) => s.addEntry);
+  const bulkAdd = useEntriesStore((s) => s.bulkAdd);
+  const setStatus = useEntriesStore((s) => s.setStatus);
+
+  // Seed demo data once if store is empty
+  useEffect(() => {
+    if (entries.length === 0) {
+      const today = format(new Date(), "yyyy-MM-dd");
+      bulkAdd([
+        {
+          type: "medication",
+          title: "Morning Medication - Lisinopril 10mg",
+          description: "Blood pressure medication prescribed by Dr. Johnson",
+          time: "08:00 AM",
+          status: "completed",
+          provider: "Dr. Johnson (Primary Care)",
+          date: today,
+        },
+        {
+          type: "medication",
+          title: "Evening Medication - Metformin 500mg",
+          description: "Diabetes medication prescribed by Dr. Smith",
+          time: "06:00 PM",
+          status: "missed",
+          provider: "Dr. Smith (Endocrinologist)",
+          date: today,
+        },
+        {
+          type: "lab",
+          title: "Returned Lab Result",
+          description: "Fasting glucose: 105 mg/dL (normal range)",
+          time: "07:30 AM",
+          status: "completed",
+          provider: "City Hospital Lab",
+          date: today,
+        },
+        {
+          type: "appointment",
+          title: "Cardiology Follow-up",
+          description: "Quarterly check-up with cardiologist",
+          time: "10:00 AM",
+          status: "upcoming",
+          provider: "Dr. Williams (Cardiology)",
+          date: today,
+        },
+      ]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleAddEntry = (newEntry: Omit<TimelineEntryData, "id">) => {
-    const entry: TimelineEntryData = {
-      ...newEntry,
-      id: Date.now().toString(),
-    };
-    setEntries([entry, ...entries]);
+    addEntry(newEntry);
   };
 
   const handleStatusChange = (id: string, status: EntryStatus) => {
-    setEntries(
-      entries.map((entry) =>
-        entry.id === id ? { ...entry, status } : entry
-      )
-    );
+    setStatus(id, status);
   };
 
-  const filteredEntries = entries.filter(entry => 
-    entry.date === format(selectedDate, "yyyy-MM-dd")
+  const selectedDateStr = useMemo(() => format(selectedDate, "yyyy-MM-dd"), [selectedDate]);
+
+  const filteredEntries = useMemo(
+    () => entries.filter((e) => e.date === selectedDateStr),
+    [entries, selectedDateStr]
   );
 
   return (
@@ -168,6 +173,8 @@ const Index = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Chatbot can now read the global store directly */}
       <ChatbotWidget />
     </div>
   );
