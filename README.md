@@ -3,8 +3,8 @@ Gordon Chen, Fiona Herzog, Michael Pignatelli
 
 Lifeline is a healthcare management web application that allows users to manage their healthcare activities. It consolidates medications, lab results, and medica apointments into a single chronological timeline interface with AI-powered assistance. 
 
-Frontend: Typescript
-Backend: TBD
+Frontend: React application built with Typescript, TailwindCSS
+Backend: we will not be making a true backend
 AI Integration: Google Gemini 2.5 Flash Lite
 
 Key Features: 
