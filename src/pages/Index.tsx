@@ -27,7 +27,7 @@ const Index = () => {
           type: "medication",
           title: "Morning Medication - Lisinopril 10mg",
           description: "Blood pressure medication prescribed by Dr. Johnson",
-          time: "08:00 AM",
+          time: "08:00",
           status: "completed",
           provider: "Dr. Johnson (Primary Care)",
           date: today,
@@ -36,7 +36,7 @@ const Index = () => {
           type: "medication",
           title: "Evening Medication - Metformin 500mg",
           description: "Diabetes medication prescribed by Dr. Smith",
-          time: "06:00 PM",
+          time: "18:00",
           status: "missed",
           provider: "Dr. Smith (Endocrinologist)",
           date: today,
@@ -45,7 +45,7 @@ const Index = () => {
           type: "lab",
           title: "Returned Lab Result",
           description: "Fasting glucose: 105 mg/dL (normal range)",
-          time: "07:30 AM",
+          time: "07:30",
           status: "completed",
           provider: "City Hospital Lab",
           date: today,
@@ -54,7 +54,7 @@ const Index = () => {
           type: "appointment",
           title: "Cardiology Follow-up",
           description: "Quarterly check-up with cardiologist",
-          time: "10:00 AM",
+          time: "10:00",
           status: "upcoming",
           provider: "Dr. Williams (Cardiology)",
           date: today,
@@ -75,7 +75,7 @@ const Index = () => {
   const selectedDateStr = useMemo(() => format(selectedDate, "yyyy-MM-dd"), [selectedDate]);
 
   const filteredEntries = useMemo(
-    () => entries.filter((e) => e.date === selectedDateStr),
+    () => entries.filter((e) => e.date === selectedDateStr).sort((a, b) => (a.time || "").localeCompare(b.time || "")),
     [entries, selectedDateStr]
   );
 
@@ -118,31 +118,18 @@ const Index = () => {
             <div className="rounded-lg border bg-card/50 p-6">
               <div className="mb-6 flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-foreground">Timeline</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedDate.toLocaleDateString("en-US", {
-                      weekday: "long",
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
+                  <h2 className="text-2xl font-bold text-foreground">Timeline for {format(selectedDate, "PPP")}</h2>
                 </div>
               </div>
 
               {filteredEntries.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-muted-foreground mb-4">No entries yet</p>
-                  <AddEntryDialog onAddEntry={handleAddEntry} />
+                  <p className="text-muted-foreground mb-4">No entries for this date.</p>
                 </div>
               ) : (
                 <div className="space-y-0">
                   {filteredEntries.map((entry) => (
-                    <TimelineEntry
-                      key={entry.id}
-                      entry={entry}
-                      onStatusChange={handleStatusChange}
-                    />
+                    <TimelineEntry key={entry.id} entry={entry} onStatusChange={handleStatusChange} />
                   ))}
                 </div>
               )}
@@ -153,9 +140,7 @@ const Index = () => {
             <div className="rounded-lg border bg-card/50 p-6">
               <div className="mb-6">
                 <h2 className="text-2xl font-bold text-foreground mb-2">Select Date</h2>
-                <p className="text-sm text-muted-foreground">
-                  Choose a date to view its timeline
-                </p>
+                <p className="text-sm text-muted-foreground">Choose a date to view its timeline</p>
               </div>
               <div className="flex justify-center">
                 <Calendar
@@ -174,7 +159,6 @@ const Index = () => {
         </Tabs>
       </main>
 
-      {/* Chatbot can now read the global store directly */}
       <ChatbotWidget />
     </div>
   );
