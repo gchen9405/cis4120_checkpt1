@@ -7,6 +7,7 @@ import "@/index.css";
 import { AddEntryDialog } from "@/components/AddEntryDialog";
 import { useEntriesStore } from "@/store/entries";
 import { TimelineEntry, TimelineEntryData, EntryStatus } from "@/components/TimelineEntry";
+import { ReminderSystem } from "@/components/ReminderSystem";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 
@@ -34,6 +35,7 @@ function AddEntryDemo() {
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <ReminderSystem />
       <div className="min-h-screen bg-background">
         <header className="border-b bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/50">
           <div className="container mx-auto px-4 py-6 flex items-center justify-between">
@@ -94,5 +96,3 @@ function AddEntryDemo() {
 }
 
 createRoot(document.getElementById("root")!).render(<AddEntryDemo />);
-
-

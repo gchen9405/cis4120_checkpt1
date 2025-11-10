@@ -37,7 +37,7 @@ export const useEntriesStore = create<EntriesState>()(
             clearAll: () => set({ entries: [] }),
         }),
         {
-            name: "lifeline-entries-v1", // localStorage key
+            name: "micro-timeline-entries-v1", // localStorage key
             partialize: (state) => ({ entries: state.entries }),
         }
     )
