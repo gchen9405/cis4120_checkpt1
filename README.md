@@ -11,6 +11,16 @@ Key Features:
 
 ## Demo Pages
 
+### Requirements
+- A `.env` file in the project root with your Gemini key:
+
+```bash
+GEMINI_API_KEY=api_key_here
+```
+
+**In a second terminal**:
+PORT=3001 node server/index.cjs
+
 To run the demo locally, follow these steps:
 
 1.  **Install Dependencies**:
@@ -29,3 +39,9 @@ To run the demo locally, follow these steps:
     -   **Hello Styles (Style Guide)**: `http://localhost:5173/styles.html`
     -   **Add Entry Demo**: `http://localhost:5173/add-entry.html`
     -   **Chatbot Demo**: `http://localhost:5173/chatbot.html`
+
+4. **Expected Output**:
+   - **Hello World:** basic app demonstrating tab views.
+   - **Hello Styles:** displays brand colors and typography.  
+   - **Add Entry Demo:** adding an entry immediately updates the timeline.
+   - **Chatbot Demo:** AI assistant replies to questions using sample health entries.

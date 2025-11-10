@@ -10,7 +10,7 @@ import { useEntriesStore } from "@/store/entries";
 const Index = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  // 🔗 read/write global store
+  // read/write global store
   const entries = useEntriesStore((s) => s.entries);
   const bulkAdd = useEntriesStore((s) => s.bulkAdd);
 
