@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { TimelineEntry, TimelineEntryData, EntryStatus } from "@/components/TimelineEntry";
-import { AddEntryDialog } from "@/components/AddEntryDialog";
+import { TimelineEntry } from "@/components/TimelineEntry";
 import { SummaryCard } from "@/components/SummaryCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar as CalendarIcon, TrendingUp, CalendarDays } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { ChatbotWidget } from "@/components/ChatbotWidget";
 import { useEntriesStore } from "@/store/entries";
 
 const Index = () => {
@@ -14,9 +12,7 @@ const Index = () => {
 
   // 🔗 read/write global store
   const entries = useEntriesStore((s) => s.entries);
-  const addEntry = useEntriesStore((s) => s.addEntry);
   const bulkAdd = useEntriesStore((s) => s.bulkAdd);
-  const setStatus = useEntriesStore((s) => s.setStatus);
 
   // Seed demo data once if store is empty
   useEffect(() => {
@@ -64,14 +60,6 @@ const Index = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleAddEntry = (newEntry: Omit<TimelineEntryData, "id">) => {
-    addEntry(newEntry);
-  };
-
-  const handleStatusChange = (id: string, status: EntryStatus) => {
-    setStatus(id, status);
-  };
-
   const selectedDateStr = useMemo(() => format(selectedDate, "yyyy-MM-dd"), [selectedDate]);
 
   const filteredEntries = useMemo(
@@ -91,7 +79,6 @@ const Index = () => {
                 Your unified health journey across all providers
               </p>
             </div>
-            <AddEntryDialog onAddEntry={handleAddEntry} />
           </div>
         </div>
       </header>
@@ -129,7 +116,7 @@ const Index = () => {
               ) : (
                 <div className="space-y-0">
                   {filteredEntries.map((entry) => (
-                    <TimelineEntry key={entry.id} entry={entry} onStatusChange={handleStatusChange} />
+                    <TimelineEntry key={entry.id} entry={entry} />
                   ))}
                 </div>
               )}
@@ -158,8 +145,6 @@ const Index = () => {
           </TabsContent>
         </Tabs>
       </main>
-
-      <ChatbotWidget />
     </div>
   );
 };
