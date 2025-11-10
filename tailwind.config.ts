@@ -2,7 +2,13 @@ import type { Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  content: [
+    "./*.html",
+    "./src/pages/**/*.{ts,tsx}",
+    "./src/demos/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
   prefix: "",
   theme: {
     container: {
@@ -69,6 +75,12 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        "medical-blue": "#4A90E2",
+        "calming-green": "#1A8B5E",
+        "accent-purple": "#9D4EDD",
+        "accent-cyan": "#13B5EA",
+        "accent-amber": "#F59E0B",
+        "alert-red": "#E74C3C",
       },
       borderRadius: {
         lg: "var(--radius)",

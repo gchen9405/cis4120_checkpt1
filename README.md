@@ -11,14 +11,14 @@ Key Features:
 
 ## Demo Pages
 
-To run the project locally, follow these steps:
+To run the demo locally, follow these steps:
 
 1.  **Install Dependencies**:
     ```bash
     npm install
     ```
 
-2.  **Start the Development Server**:
+2.  **Start the Dev Server**:
     ```bash
     npm run dev
     ```
